@@ -8,54 +8,81 @@ enum class InstagramScreen {
 
 object ReelScreenDetector {
     fun detect(flatNodes: List<TreeNodeInfo>): InstagramScreen {
-        var hasClips = false
-        var hasFeed = false
-        var hasStory = false
-        var hasProfile = false
-        var hasExplore = false
-        var hasComments = false
-        var hasShare = false
-        var hasSearch = false
+        val foundNodes = mutableListOf<String>()
+        val missingNodes = mutableListOf<String>()
         
         var clipsScore = 0
         
-        for (node in flatNodes) {
-            val id = node.viewId.substringAfterLast('/').lowercase()
-            if (id == "n/a" || id.isBlank()) continue
-            
-            if (id.contains("clips_viewer") || 
-                id.contains("root_clips") || 
-                id.contains("clips_video") ||
-                id.contains("clips_media_component")) {
-                clipsScore += 2
-                hasClips = true
+        val indicators = mapOf(
+            "root_clips_layout" to 3,
+            "clips_viewer_container" to 3,
+            "clips_viewer_view_pager" to 3,
+            "clips_media_component" to 2,
+            "clips_video_container" to 2,
+            "clips_author_username" to 1,
+            "clips_caption_component" to 1,
+            "use_audio_button" to 1,
+            "music_button" to 1
+        )
+        
+        // Negative indicators
+        var hasComments = false
+        var hasShare = false
+        var hasStory = false
+        var hasProfile = false
+        var hasExplore = false
+        var hasSearch = false
+        var hasFeed = false
+
+        val detectedIds = flatNodes.map { it.viewId.substringAfterLast('/').lowercase() }.toSet()
+        
+        for ((nodeName, weight) in indicators) {
+            if (detectedIds.any { it.contains(nodeName) }) {
+                foundNodes.add(nodeName)
+                clipsScore += weight
+            } else {
+                missingNodes.add(nodeName)
             }
-            if (id.contains("clips_author") || id.contains("clips_caption")) {
-                clipsScore += 1
-            }
-            
-            if (id.contains("row_feed") || id.contains("main_feed")) hasFeed = true
-            if (id.contains("story_viewer") || id.contains("reel_viewer_root") || id.contains("story_layout")) hasStory = true
-            if (id.contains("profile_header") || id.contains("profile_tabs")) hasProfile = true
-            if (id.contains("explore_grid") || id.contains("discovery_")) hasExplore = true
-            if (id.contains("comment_thread") || id.contains("layout_comment")) hasComments = true
-            if (id.contains("direct_share") || id.contains("share_sheet")) hasShare = true
-            if (id.contains("search_bar") || id.contains("search_results")) hasSearch = true
+        }
+
+        // Check negatives (avoid matching the buttons on the Reel itself)
+        if (detectedIds.any { it == "comment_thread" || it.contains("comment_list_container") }) hasComments = true
+        if (detectedIds.any { it == "direct_share_sheet_scroll_view" || it == "share_sheet_search_bar" }) hasShare = true
+        if (detectedIds.any { it == "story_viewer" || it == "story_layout" }) hasStory = true
+        if (detectedIds.any { it == "profile_header" || it == "profile_tabs" }) hasProfile = true
+        if (detectedIds.any { it == "explore_grid" || it.contains("discovery_") }) hasExplore = true
+        if (detectedIds.any { it == "search_bar" || it == "search_results" }) hasSearch = true
+        if (detectedIds.any { it == "row_feed_photo_profile_name" || it == "row_feed_button_like" || it == "main_feed" }) hasFeed = true
+        
+        val threshold = 3
+        val isReels = clipsScore >= threshold
+
+        val decision = when {
+            hasComments -> InstagramScreen.COMMENTS
+            hasShare -> InstagramScreen.SHARE_SHEET
+            isReels -> InstagramScreen.REELS
+            hasStory -> InstagramScreen.STORIES
+            hasProfile -> InstagramScreen.PROFILE
+            hasExplore -> InstagramScreen.EXPLORE
+            hasSearch -> InstagramScreen.SEARCH
+            hasFeed -> InstagramScreen.HOME
+            else -> InstagramScreen.UNKNOWN
+        }
+
+        val logMessage = buildString {
+            appendLine("ReelScreenDetector")
+            appendLine()
+            appendLine("Found:")
+            foundNodes.forEach { appendLine("✓ $it") }
+            missingNodes.forEach { appendLine("✗ $it") }
+            appendLine()
+            appendLine("Score = $clipsScore")
+            appendLine("Threshold = $threshold")
+            appendLine("Decision = ${decision.name}")
         }
         
-        // Bottom sheets and overlays take precedence because they appear ON TOP of reels
-        if (hasComments) return InstagramScreen.COMMENTS
-        if (hasShare) return InstagramScreen.SHARE_SHEET
-        
-        // Explicit Reels detection
-        if (clipsScore >= 2) return InstagramScreen.REELS
-        
-        if (hasStory) return InstagramScreen.STORIES
-        if (hasProfile) return InstagramScreen.PROFILE
-        if (hasExplore) return InstagramScreen.EXPLORE
-        if (hasSearch) return InstagramScreen.SEARCH
-        if (hasFeed) return InstagramScreen.HOME
-        
-        return InstagramScreen.UNKNOWN
+        Log.d("ReelScreenDetector", logMessage)
+
+        return decision
     }
 }

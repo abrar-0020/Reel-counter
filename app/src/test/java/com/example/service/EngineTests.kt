@@ -63,7 +63,8 @@ class EngineTests {
         val flat = listOf(
             TreeNodeInfo("android.widget.TextView", "com.instagram.android:id/clips_author_username", "robot_volodya", null),
             TreeNodeInfo("android.widget.TextView", "com.instagram.android:id/clips_caption_component", "Look at this cool reel", null),
-            TreeNodeInfo("android.widget.Button", "com.instagram.android:id/music_button", null, "Cool Song")
+            TreeNodeInfo("android.widget.Button", "com.instagram.android:id/music_button", null, "Cool Song"),
+            TreeNodeInfo("android.widget.FrameLayout", "com.instagram.android:id/root_clips_layout", null, null)
         )
 
         // 5000 reels stress test

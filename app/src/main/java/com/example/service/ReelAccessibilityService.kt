@@ -715,6 +715,12 @@ class RetryConfirmationEngine(
         }
         Log.d("ReelCounter", "Current screen: REELS\nProcessing event")
         
+        // Ensure Session is Running
+        if (com.example.manager.SessionManager.state.value != com.example.manager.SessionState.RUNNING) {
+            isConfirming = false
+            return
+        }
+
         val sigStart = System.currentTimeMillis()
         val metadata = metadataExtractor.extract(flatNodes)
         val newSignature = signatureGenerator.generate(flatNodes, windowId, metadata)
