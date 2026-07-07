@@ -15,11 +15,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
-import android.widget.LinearLayout
 import android.widget.TextView
 import com.example.R
 import com.example.manager.SessionState
 import android.graphics.drawable.GradientDrawable
+import android.widget.LinearLayout
 import android.widget.FrameLayout
 
 class FloatingCounterOverlay(private val context: Context) {
@@ -27,10 +27,10 @@ class FloatingCounterOverlay(private val context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("overlay_prefs", Context.MODE_PRIVATE)
 
     private val view: View = LayoutInflater.from(context).inflate(R.layout.floating_counter_overlay, null)
-    private val cardView: FrameLayout = view.findViewById(R.id.card_view)
+    private val cardView: LinearLayout = view.findViewById(R.id.card_view)
+    private val countCircle: FrameLayout = view.findViewById(R.id.count_circle)
     private val countText: TextView = view.findViewById(R.id.count_text)
     private val timeText: TextView = view.findViewById(R.id.time_text)
-    private val contentContainer: LinearLayout = view.findViewById(R.id.content_container)
 
     private var params: WindowManager.LayoutParams
     private var isAdded = false
@@ -42,7 +42,7 @@ class FloatingCounterOverlay(private val context: Context) {
     private var initialTouchY = 0f
     private var isDragging = false
 
-    private var currentColor = Color.GRAY
+    private var currentColor = Color.parseColor("#6B7280")
     private var isExpanded = false
     private val handler = Handler(Looper.getMainLooper())
     private val collapseRunnable = Runnable { collapse() }
@@ -57,8 +57,7 @@ class FloatingCounterOverlay(private val context: Context) {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or 
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or 
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         )
         params.gravity = Gravity.TOP or Gravity.END
@@ -68,8 +67,8 @@ class FloatingCounterOverlay(private val context: Context) {
             params.x = savedX
             params.y = savedY
         } else {
-            params.x = 48 // Approx 16dp from right
-            params.y = 48 // Approx 16dp from top
+            params.x = dpToPx(16)
+            params.y = dpToPx(16)
         }
 
         setupTouchListener()
@@ -121,10 +120,10 @@ class FloatingCounterOverlay(private val context: Context) {
 
     fun updateState(state: SessionState) {
         val targetColor = when (state) {
-            SessionState.RUNNING -> Color.parseColor("#4CAF50") // Green
-            SessionState.STOPPED -> Color.parseColor("#F44336") // Red
-            SessionState.PAUSED -> Color.parseColor("#FF9800") // Orange
-            SessionState.IDLE -> Color.parseColor("#9E9E9E") // Gray
+            SessionState.RUNNING -> Color.parseColor("#22C55E") // Green
+            SessionState.STOPPED -> Color.parseColor("#EF4444") // Red
+            SessionState.PAUSED -> Color.parseColor("#F59E0B") // Orange
+            SessionState.IDLE -> Color.parseColor("#6B7280") // Gray
         }
 
         if (currentColor != targetColor) {
@@ -132,8 +131,8 @@ class FloatingCounterOverlay(private val context: Context) {
             animator.duration = 200
             animator.addUpdateListener { anim ->
                 val color = anim.animatedValue as Int
-                val background = cardView.background.mutate() as GradientDrawable
-                background.setColor(color)
+                val background = countCircle.background.mutate() as GradientDrawable
+                background.setStroke(dpToPx(2), color)
             }
             animator.start()
             currentColor = targetColor
@@ -142,7 +141,7 @@ class FloatingCounterOverlay(private val context: Context) {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupTouchListener() {
-        cardView.setOnTouchListener { _, event ->
+        countCircle.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = params.x
