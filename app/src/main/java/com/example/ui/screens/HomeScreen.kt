@@ -34,6 +34,23 @@ fun HomeScreen(viewModel: MainViewModel, isServiceEnabled: Boolean) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = if (isServiceEnabled) "🟢 Connected" else "🔴 Not Enabled",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         if (!isServiceEnabled) {
             Card(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
