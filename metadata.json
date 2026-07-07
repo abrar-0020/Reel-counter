@@ -1,0 +1,6 @@
+{
+  "name": "ReelCounter",
+  "description": "Verify and monitor Instagram Reel scroll events via Accessibility Service.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
