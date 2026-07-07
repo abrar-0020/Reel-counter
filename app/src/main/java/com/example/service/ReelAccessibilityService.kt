@@ -702,6 +702,19 @@ class RetryConfirmationEngine(
         }
         
         val flatNodes = fullTree.flatten()
+        
+        val screenType = ReelScreenDetector.detect(flatNodes)
+        if (screenType != InstagramScreen.REELS) {
+            Log.d("ReelCounter", "Current screen: $screenType\nIgnoring event")
+            if (screenType == InstagramScreen.UNKNOWN && retryCount < 5) {
+                scheduleRetry("Screen unknown ($screenType)", parseTime = parseTime)
+                return
+            }
+            isConfirming = false
+            return
+        }
+        Log.d("ReelCounter", "Current screen: REELS\nProcessing event")
+        
         val sigStart = System.currentTimeMillis()
         val metadata = metadataExtractor.extract(flatNodes)
         val newSignature = signatureGenerator.generate(flatNodes, windowId, metadata)
