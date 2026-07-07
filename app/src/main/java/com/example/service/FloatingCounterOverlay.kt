@@ -152,7 +152,7 @@ class FloatingCounterOverlay(private val context: Context) {
                     
                     // If gravity was END, switch to START so X coordinates work intuitively
                     if ((params.gravity and Gravity.END) == Gravity.END) {
-                        val screenWidth = windowManager.defaultDisplay.width
+                        val screenWidth = context.resources.displayMetrics.widthPixels
                         params.x = screenWidth - params.x - view.width
                         params.gravity = Gravity.TOP or Gravity.START
                         windowManager.updateViewLayout(view, params)
