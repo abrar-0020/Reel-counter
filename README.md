@@ -1,4 +1,4 @@
-<img width="647" height="631" alt="image" src="https://github.com/user-attachments/assets/cd298677-1136-49c4-bc5d-1ea73c199e54" /><div align="center">
+<img width="647" height="631" alt="image" src="https://github.com/user-attachments/assets/cd298677-1136-49c4-bc5d-1ea73c199e54" />
 
 
 ## Run Locally
